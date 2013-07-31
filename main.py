@@ -10,6 +10,10 @@ def page_not_found(e):
 def main():
     return render_template('index.html')
 
+@app.route('/pathfinder')
+def pathfinder():
+    return render_template('pathfinder.html')
+
 if __name__ == '__main__':
     app.debug = True
     app.run()
