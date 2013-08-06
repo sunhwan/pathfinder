@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+  <h1>PathFinder</h1>
+  <p class="lead">Find transition pathway between two protein conformations</p>
+</div>
+
+<hr>
+
+<div class="row-fluid marketing text-center">
+<div class='hero-unit'>
+{% if status == 'Q' %}
+  <h3>Your job is waiting in queue.</h3>
+{% endif %}
+
+  <p>
+    An e-mail will be sent when the job is over.
+  </p>
+  <p> JOBID: {{ uuid }} </p>
+</div>
+</div>
+
+{% endblock %}

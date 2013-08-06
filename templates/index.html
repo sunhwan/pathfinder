@@ -1,23 +1,137 @@
 {% extends "base.html" %}
-{% block title %} - Home{% endblock %}
+
+{% block javascript %}
+
+$(document).ready(function() {
+  is_valid = true;
+  $('#form').submit(function() {
+{% if chains %}
+    if (!$('input[type=email]').val()) {
+      myalert('Email address is required');
+      is_valid = false;
+    }
+{% else %}
+    filename = '';
+    $('input[type=file]').each(function() {
+      if (!this.value) {
+        $(this).parent().addClass('btn-primary');
+        is_valid = false;
+        myalert('Please select two PDB files');
+      }
+      else {
+        if ($(this).parent().hasClass('btn-primary')) $(this).parent().removeClass('btn-primary');
+        if (filename == this.value) {
+          myalert('Two PDB files are identical');
+          is_valid = false;
+        }
+        filename = this.value;
+      }
+    })
+{% endif %}
+    return is_valid;
+  });
+});
+
+function myalert(msg) {
+  $('#message').show();
+  $('span.alert-error').html(msg);
+}
+{% endblock %}
+
 {% block content %}
 <div class="jumbotron">
-  <h1>Awesome PathFinder</h1>
-  <p class="lead">Find transition pathway between two protein structures.</p>
-  <p><a class="btn btn-large btn-success" href="{{ url_for('pathfinder') }}">Start PathFinder</a></p>
+  <h1>PathFinder</h1>
+  <p class="lead">Find transition pathway between two protein conformations</p>
 </div>
 
-<div class="row marketing">
-  <div class="col-lg-6">
-    <h4>Subheading</h4>
-    <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+<hr>
 
-  </div>
-
-  <div class="col-lg-6">
-    <h4>Subheading</h4>
-    <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
-
+<form class="form-horizontal" enctype="multipart/form-data" method="POST" id='form' action="{{ action|default(url_for('upload')) }}">
+<div class="control-group">
+  <label class="control-label">Initial PDB</label>
+  <div class="controls">
+{% if not pdb1 %}
+<div class="fileupload fileupload-new" data-provides="fileupload">
+<span class="btn btn-file" id='pickfiles'><span class="fileupload-new">Select file</span><span class="fileupload-exists">Change</span><input type="file" name='pdb1' /></span>
+<span class="fileupload-preview"></span>
+<a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none">×</a>
+</div>
+{% else %}
+  <span class="control-label help-inline">{{ pdb1.filename }}</span>
+  <input type="hidden" name="pdb1" value="{{ pdb1.filename }}">
+{% endif %}
   </div>
 </div>
+
+<div class="control-group">
+  <label class="control-label">Final PDB</label>
+  <div class="controls">
+{% if not pdb2 %}
+<div class="fileupload fileupload-new" data-provides="fileupload">
+<span class="btn btn-file"><span class="fileupload-new">Select file</span><span class="fileupload-exists">Change</span><input type="file" name='pdb2' /></span>
+<span class="fileupload-preview"></span>
+<a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none">×</a>
+</div>
+{% else %}
+  <span class="control-label help-inline">{{ pdb2.filename }}</span>
+  <input type="hidden" name="pdb2" value="{{ pdb2.filename }}">
+{% endif %}
+  </div>
+</div>
+
+{% if not chains %}
+<div class="control-group" id='message'{% if not error or error.code == 200 %} style="display: none"{% endif %}>
+  <div class="controls">
+    <span class="help-inline alert alert-error">{% if error and error.code != 200 %}{{ error.message }}{% endif %}</span>
+  </div>
+</div>
+
+<div class="control-group">
+  <div class="controls">
+    <button class="btn" type="submit" id='upload'>Upload PDB</button>
+  </div>
+</div>
+{% endif %}
+
+{% if chains %}
+<div class="control-group">
+  <label class="control-label">Chains</label>
+  <div class="controls">
+{% for k,v in chains %}
+    <div class="form-inline" style="padding-top: 5px">
+      <label class="checkbox inline" style="padding-top: 0px;">
+        <input type="checkbox" name="chains" value="{{ k }}" checked> {{ k }}
+      </label>
+ 
+      <span style='width: 15px; display: inline-block;'></span>
+      <input type="text" value="{{ v.0 }}" name="chain.{{k}}.from" style="height: 14px; line-height: 14px;" class="input-mini">
+      to
+      <input type="text" value="{{ v.1 }}" name="chain.{{k}}.to"   style="height: 14px; line-height: 14px;" class="input-mini">
+    </div>
+{% endfor %}
+  </div>
+</div>
+
+<div class="control-group">
+  <label class="control-label">Email</label>
+  <div class="controls">
+    <input type="email" name='email' required>
+    <span class='help-inline'>required</span>
+  </div>
+</div>
+
+<div class="control-group" id='message'{% if not error or error.code == 200 %} style="display: none"{% endif %}>
+  <div class="controls">
+    <span class="help-inline alert alert-error">{% if error and error.code != 200 %}{{ error.message }}{% endif %}</span>
+  </div>
+</div>
+
+<div class="control-group">
+  <div class="controls">
+    <button class="btn" type="submit">Run PathFinder</button>
+  </div>
+</div>
+{% endif %}
+</form>
+
 {% endblock %}
