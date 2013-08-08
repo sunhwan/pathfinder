@@ -12,10 +12,18 @@
 <div class='hero-unit'>
 {% if status == 'Q' %}
   <h3>Your job is waiting in queue.</h3>
+{% elif status == 'R' %}
+  <h3>Your job is currently running.</h3>
+{% elif status == 'F' or status == 'E' %}
+  <h3>Your job is finished.</h3>
 {% endif %}
 
   <p>
+  {% if status == 'E' %}
+    There was an error. Please contact us for more detail.
+  {% else %}
     An e-mail will be sent when the job is over.
+  {% endif %}
   </p>
   <p> JOBID: {{ uuid }} </p>
 </div>

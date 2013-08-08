@@ -10,7 +10,7 @@ from datetime import datetime
 
 UPLOAD_FOLDER = '/tmp/'
 JOB_FOLDER = '/tmp/'
-VMD_EXECUTABLE = '/Applications/VMD\ 1.9.app/Contents/vmd/vmd_MACOSXX86'
+VMD_EXECUTABLE = 'vmd'
 DATABASE = '/tmp/pathfinder.sqlite'
 ALLOWED_EXTENSIONS = set(['pdb'])
 
@@ -33,6 +33,9 @@ def init_db():
         with app.open_resource('schema.sql', mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
+
+def get_job_folder(uuid):
+    return os.path.join(UPLOAD_FOLDER, uuid)
 
 @app.teardown_appcontext
 def close_connection(exception):
