@@ -1,3 +1,4 @@
 /static/img/
 /static/src/
 *.pyc
+.DS_Store

@@ -3,6 +3,24 @@
 {% block javascript %}
 
 $(document).ready(function() {
+  // popover initialize
+  $('.badge').popover('hide');
+
+  // add chain selection
+  function add_chain_selection(x) {
+    $(x).parents('tr').after('<tr><td></td><td>'+$(x).parent().prev().html()+'</td><td><i class="iconic-o-plus"></i><i class="iconic-o-minus"></i></td></tr>');
+    $('.iconic-o-plus').click(function() { add_chain_selection(this); });
+    $('.iconic-o-minus').click(function() { remove_chain_selection(this); });
+  }
+
+  function remove_chain_selection(x) {
+    $(x).parents('tr').remove();
+  }
+
+  $('.iconic-o-plus').click(function() {
+    add_chain_selection(this);
+  });
+
   is_valid = true;
   $('#form').submit(function() {
 {% if chains %}
@@ -40,7 +58,7 @@ function myalert(msg) {
 
 {% block content %}
 <div class="jumbotron">
-  <h1>PathFinder</h1>
+  <h1>ANM Pathway</h1>
   <p class="lead">Find transition pathway between two protein conformations</p>
 </div>
 
@@ -97,18 +115,97 @@ function myalert(msg) {
 <div class="control-group">
   <label class="control-label">Chains</label>
   <div class="controls">
+
+<table class='table-condensed'>
 {% for k,v in chains %}
-    <div class="form-inline" style="padding-top: 5px">
+  <tr>
+    <td>
       <label class="checkbox inline" style="padding-top: 0px;">
         <input type="checkbox" name="chains" value="{{ k }}" checked> {{ k }}
       </label>
- 
+    </td>
+    <td>
       <span style='width: 15px; display: inline-block;'></span>
-      <input type="text" value="{{ v.0 }}" name="chain.{{k}}.from" style="height: 14px; line-height: 14px;" class="input-mini">
+      <input type="text" value="{{ v.0 }}" name="chain.{{k}}.from" style="height: 14px; line-height: 14px;" class="input-mini" required>
       to
-      <input type="text" value="{{ v.1 }}" name="chain.{{k}}.to"   style="height: 14px; line-height: 14px;" class="input-mini">
-    </div>
+      <input type="text" value="{{ v.1 }}" name="chain.{{k}}.to"   style="height: 14px; line-height: 14px;" class="input-mini" required>
+    </td>
+    <td>
+      <i class="iconic-o-plus"></i>
+    </td>
+  </tr>
 {% endfor %}
+</table>
+  </div>
+</div>
+
+<div class="control-group">
+  <label class="control-label">Parameter for Initial PDB</label>
+  <div class="controls">
+
+    <table class="table-condensed">
+      <tr>
+        <td>Force constant</td>
+        <td>
+          <input type="text" name='fc1' value='0.1' class="input-mini" style="height: 14px; line-height: 14px;" required>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+        </td>
+      </tr>
+      <tr>
+        <td>Cut-off</td>
+        <td>
+          <input type="text" name='cutoff1' value='15.0' class="input-mini" style="height: 14px; line-height: 14px;" required>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+        </td>
+      </tr>
+      <tr>
+        <td>Energy offset</td>
+        <td>
+          <input type="text" name='offset1' value='5.0' class="input-mini" style="height: 14px; line-height: 14px;" required>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+        </td>
+      </tr>
+    </table>
+
+  </div>
+</div>
+
+<div class="control-group">
+  <label class="control-label">Parameter for Final PDB</label>
+  <div class="controls">
+
+    <table class="table-condensed">
+      <tr>
+        <td>Force constant</td>
+        <td>
+          <input type="text" name='fc2' value='0.1' class="input-mini" style="height: 14px; line-height: 14px;" required>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+        </td>
+      </tr>
+      <tr>
+        <td>Cut-off</td>
+        <td>
+          <input type="text" name='cutoff2' value='15.0' class="input-mini" style="height: 14px; line-height: 14px;" required>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+        </td>
+      </tr>
+      <tr>
+        <td>Energy offset</td>
+        <td>
+          <input type="text" name='offset2' value='0.0' class="input-mini" style="height: 14px; line-height: 14px;" required>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+        </td>
+      </tr>
+    </table>
+
+  </div>
+</div>
+
+<div class="control-group">
+  <label class="control-label">Target RMSD</label>
+  <div class="controls">
+    <input type="text" name='target_rmsd' value='0.1' class="input-mini">
+    <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly" required>?</a>
   </div>
 </div>
 
@@ -128,7 +225,7 @@ function myalert(msg) {
 
 <div class="control-group">
   <div class="controls">
-    <button class="btn" type="submit">Run PathFinder</button>
+    <button class="btn" type="submit">Run ANM Pathway</button>
   </div>
 </div>
 {% endif %}

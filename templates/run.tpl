@@ -2,10 +2,25 @@
 
 set vmd = {{ vmd }}
 
-$vmd -dispdev none -e prepare_input_strucutre_files.tcl > prepare_input_structure_files.out
-set np = `sed -n 's/Number of atoms: \([0-9]*\)/\1/p' structure_prep.log`
+$vmd -dispdev none -e prepare_input_structure_files.tcl > prepare_input_structure_files.out
 
+set np = `sed -n 's/Number of atoms: \([0-9]*\)/\1/p' structure_prep.log`
+set fc1 = {{ fc1 }}
+set cutoff1 = {{ cutoff1 }}
+set offset1 = {{ offset1 }}
+set fc2 = {{ fc2 }}
+set cutoff2 = {{ cutoff2 }}
+set offset2 = {{ offset2 }}
+set rmsd = {{ target }}
+
+perl -pi -e 's/\$FORCE_CONSTANT_1 = ([\.0-9]+)?;/\$FORCE_CONSTANT_1 = '$fc1';/g' create_input_files_ANMPathway.pl
+perl -pi -e 's/\$CUT_OFF_1 = ([\.0-9]+)?;/\$CUT_OFF_1 = '$cutoff1';/g' create_input_files_ANMPathway.pl
+perl -pi -e 's/\$ENERGY_OFFSET_1 = ([\.0-9]+)?;/\$ENERGY_OFFSET_1 = '$offset1';/g' create_input_files_ANMPathway.pl
+perl -pi -e 's/\$FORCE_CONSTANT_2 = ([\.0-9]+)?;/\$FORCE_CONSTANT_2 = '$fc2';/g' create_input_files_ANMPathway.pl
+perl -pi -e 's/\$CUT_OFF_2 = ([\.0-9]+)?;/\$CUT_OFF_2 = '$cutoff2';/g' create_input_files_ANMPathway.pl
+perl -pi -e 's/\$ENERGY_OFFSET_2 = ([\.0-9]+)?;/\$ENERGY_OFFSET_2 = '$offset2';/g' create_input_files_ANMPathway.pl
 perl -pi -e 's/\$NUM_PARTICLES = ([0-9]+)?;/\$NUM_PARTICLES = '$np';/g' create_input_files_ANMPathway.pl
+perl -pi -e 's/\$RMSD_PATHWAY = ([\.0-9]+)?;/\$RMSD_PATHWAY = '$rmsd';/g' create_input_files_ANMPathway.pl
 ./create_input_files_ANMPathway.pl
 
 ./1_locate_struct_on_cusp_v2

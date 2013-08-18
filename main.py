@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, abort, send_file
 from werkzeug import secure_filename
 from flask import jsonify
 import os
@@ -7,22 +7,19 @@ import uuid
 import sqlite3
 from flask import g
 from datetime import datetime
+import conf
 
-UPLOAD_FOLDER = '/tmp/'
-JOB_FOLDER = '/tmp/'
-VMD_EXECUTABLE = 'vmd'
-DATABASE = '/tmp/pathfinder.sqlite'
 ALLOWED_EXTENSIONS = set(['pdb'])
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['JOB_FOLDER'] = JOB_FOLDER
+app.config['UPLOAD_FOLDER'] = conf.UPLOAD_FOLDER
+app.config['JOB_FOLDER'] = conf.JOB_FOLDER
 
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        is_new = not os.path.exists(DATABASE)
-        db = g._database = sqlite3.connect(DATABASE)
+        is_new = not os.path.exists(conf.DATABASE)
+        db = g._database = sqlite3.connect(conf.DATABASE)
         # initialize?
         if is_new: init_db()
     return db 
@@ -35,7 +32,7 @@ def init_db():
         db.commit()
 
 def get_job_folder(uuid):
-    return os.path.join(UPLOAD_FOLDER, uuid)
+    return os.path.join(conf.UPLOAD_FOLDER, uuid)
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -55,14 +52,27 @@ def index():
 def about():
     return render_template('about.html')
 
+@app.route('/pathfinder/download/<uuid>')
+def download(uuid):
+    jobdir = get_job_folder(uuid)
+    if not os.path.exists(jobdir): abort(404)
+
+    import tarfile
+    import StringIO, glob
+    fp = StringIO.StringIO()
+    tar = tarfile.open(fileobj=fp, mode='w:gz')
+    for f in glob.glob('%s/*' % jobdir):
+        tar.add(f, arcname='pathfinder/%s' % os.path.basename(f))
+    tar.close()
+    fp.seek(0)
+    return send_file(fp, mimetype='application/x-gzip', as_attachment=True, attachment_filename='pathfinder.tar.gz')
+
 @app.route('/pathfinder/status/<uuid>')
 def status(uuid):
     cur = get_db().cursor()
-    print uuid
     cur.execute('select * from job where uuid=?', (uuid,))
     row = cur.fetchone()
     uuid, email, date, status = row
-
     return render_template('queue.html', uuid=uuid, date=date, status=status)
 
 @app.route('/pathfinder/success/<uuid>')
@@ -75,12 +85,28 @@ def pathfinder():
 
     # sanity check
     flag = False
-    if not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], request.form.get('pdb1', ''))): flag = True
-    if not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], request.form.get('pdb2', ''))): flag = True
-    if not request.form.getlist('chains'): flag = True
-    if not request.form.getlist('email'): flag = True
+    message = {590: 'Missing PDB file(s)',
+               591: 'Please select at least one chain',
+               592: 'Please provide e-mail address', 
+               593: 'Please provide proper residue range',
+               594: 'Some parameters are missing for initial and final PDB'}
+
+    if not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], request.form.get('pdb1', ''))): flag = 590
+    if not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], request.form.get('pdb2', ''))): flag = 590
+    if not request.form.getlist('chains'): flag = 591
+    if not request.form.getlist('email'): flag = 592
+
+    for chain in request.form.getlist('chains'):
+        resid1 = map(int, request.form.getlist('chain.%s.from' % chain))
+        resid2 = map(int, request.form.getlist('chain.%s.to' % chain))
+        if len(resid1) != len(resid2): flag = 593
+
+    for pname in ['fc1', 'fc2', 'cutoff1', 'cutoff2', 'offset1', 'offset2']:
+        if not request.form.get(pname, None): flag = 594
+
     if flag:
-        error = {'code': 599, 'message': 'Something went terribly wrong'}
+        #error = {'code': 599, 'message': 'Something went terribly wrong'}
+        error = {'code': flag, 'message': message[flag]}
         return render_template('index.html', error=error)
 
     jobid = str(uuid.uuid4())
@@ -103,21 +129,28 @@ def pathfinder():
                    'static/src/step-3-slide-down/3_desc_one_surface_v3',
                    'static/src/step-4-collect-structures/4_collec_ener_v2',
                    'static/src/step-5-make-pathway/5_makepathway_v2',
-                   'static/src/prepare_input_strucutre_files.tcl',
+                   'static/src/prepare_input_structure_files.tcl',
                    'static/src/create_input_files_ANMPathway.pl']
     for executable in executables:
-        copy(executable, jobdir)
+        copy(os.path.join(conf.BASEDIR, executable), jobdir)
 
     fp = open(os.path.join(jobdir, 'INPUT_INFO_STRUCTURES'), 'w')
     fp.write("%s %s\n" % (pdb1, pdb2))
     for chain in chains:
-        resid1 = int(request.form['chain.%s.from' % chain])
-        resid2 = int(request.form['chain.%s.to' % chain])
-        fp.write("%s %d to %d\n" % (chain, resid1, resid2))
+        resid1 = map(int, request.form.getlist('chain.%s.from' % chain))
+        resid2 = map(int, request.form.getlist('chain.%s.to' % chain))
+        fp.write("%s %s\n" % (chain, " ".join(['%d to %d' % (resid1[i], resid2[i]) for i in range(len(resid1))])))
     fp.close()
 
     fp = open(os.path.join(jobdir, 'run.com'), 'w')
-    fp.write(render_template('run.tpl', vmd=VMD_EXECUTABLE))
+    fc1 = request.form.get('fc1', 0.1)
+    cutoff1 = request.form.get('cutoff1', 15.0)
+    offset1 = request.form.get('offset1', 5.0)
+    fc2 = request.form.get('fc2', 0.1)
+    cutoff2 = request.form.get('cutoff2', 15.0)
+    offset2 = request.form.get('offset2', 0.0)
+    target = request.form.get('target_rmsd', 0.1)
+    fp.write(render_template('run.tpl', vmd=conf.VMD_EXECUTABLE, fc1=fc1, fc2=fc2, cutoff1=cutoff1, cutoff2=cutoff2, offset1=offset1, offset2=offset2, target=target))
 
     db = get_db()
     cur = db.cursor()
@@ -189,4 +222,4 @@ def upload():
 
 if __name__ == '__main__':
     app.debug = True
-    app.run()
+    app.run('avi.bsd.uchicago.edu')

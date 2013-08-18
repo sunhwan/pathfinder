@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="jumbotron">
-  <h1>PathFinder</h1>
+  <h1>ANM Pathway</h1>
   <p class="lead">Find transition pathway between two protein conformations</p>
 </div>
 
@@ -21,6 +21,8 @@
   <p>
   {% if status == 'E' %}
     There was an error. Please contact us for more detail.
+  {% elif status == 'F' %}
+    Please click <a href="{{ url_for('download', uuid=uuid) }}">here</a> to download all outputs.
   {% else %}
     An e-mail will be sent when the job is over.
   {% endif %}
