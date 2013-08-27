@@ -37,9 +37,9 @@ def get_job_folder(uuid):
 def check_taskserver_status():
     import socket
     import subprocess as sp
-    ip, port = open('taskserver.info').readline().strip().split(':')
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
+        ip, port = open(os.path.join(conf.JOB_FOLDER, 'taskserver.info')).readline().strip().split(':')
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((ip, int(port)))
         sock.sendall('ok:')
         response = sock.recv(1024)
@@ -48,7 +48,7 @@ def check_taskserver_status():
         pass
 
     print 'create taskserver...'
-    sp.Popen(['python', 'taskserver.py'])
+    sp.Popen(['python', 'taskserver.py'], cwd=conf.BASEDIR)
     return True
 
 

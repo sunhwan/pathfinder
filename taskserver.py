@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
     server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
     ip, port = server.server_address
-    open('taskserver.info', 'w').write("%s:%s" % (ip, port))
+    open(os.path.join(conf.JOB_FOLDER, 'taskserver.info'), 'w').write("%s:%s" % (ip, port))
 
     # Start a thread with the server -- that thread will then start one
     # more thread for each request
