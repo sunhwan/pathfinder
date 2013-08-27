@@ -40,8 +40,16 @@ set ni = `sed -n 's/Total number of structures in the pathway: \([0-9]*\)/\1/p' 
 echo $np $ni
 ./5_makepathway_v2 -n $np -i $ni -a 0
 
+echo "NUM_PARTICLES $np\
+NUM_IMAGES $ni\
+CUT_OFF 5.0\
+SEPERATION_END_STATES 10.0" > INPUT_FIND_CLOSE_PAIRS
+./find_pairs_path_v2
+
 tar -czf COORDS_IMAGES.tar.gz COORDS_IMAGE_*
 tar -czf COORDS_SURFACE.tar.gz OUT_COORDS_SURFACE_*
+tar -czf contact_pairs.tar.gz distance_*
 rm -f COORDS_IMAGE_*
 rm -f OUT_COORDS_SURFACE_*
+rm -f distance_*
 

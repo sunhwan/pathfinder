@@ -21,8 +21,8 @@ $(document).ready(function() {
     add_chain_selection(this);
   });
 
-  is_valid = true;
   $('#form').submit(function() {
+    is_valid = true;
 {% if chains %}
     if (!$('input[type=email]').val()) {
       myalert('Email address is required');

@@ -34,6 +34,24 @@ def init_db():
 def get_job_folder(uuid):
     return os.path.join(conf.UPLOAD_FOLDER, uuid)
 
+def check_taskserver_status():
+    import socket
+    import subprocess as sp
+    ip, port = open('taskserver.info').readline().strip().split(':')
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        sock.connect((ip, int(port)))
+        sock.sendall('ok:')
+        response = sock.recv(1024)
+        if response == 'OK': return True
+    except:
+        pass
+
+    print 'create taskserver...'
+    sp.Popen(['python', 'taskserver.py'])
+    return True
+
+
 @app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)
@@ -73,6 +91,9 @@ def status(uuid):
     cur.execute('select * from job where uuid=?', (uuid,))
     row = cur.fetchone()
     uuid, email, date, status = row
+
+    check_taskserver_status()
+
     return render_template('queue.html', uuid=uuid, date=date, status=status)
 
 @app.route('/pathfinder/success/<uuid>')
@@ -130,7 +151,8 @@ def pathfinder():
                    'static/src/step-4-collect-structures/4_collec_ener_v2',
                    'static/src/step-5-make-pathway/5_makepathway_v2',
                    'static/src/prepare_input_structure_files.tcl',
-                   'static/src/create_input_files_ANMPathway.pl']
+                   'static/src/create_input_files_ANMPathway.pl',
+                   'static/src/non-native-contacts/find_pairs_path_v2']
     for executable in executables:
         copy(os.path.join(conf.BASEDIR, executable), jobdir)
 
@@ -156,6 +178,8 @@ def pathfinder():
     cur = db.cursor()
     cur.execute('insert into job( uuid, email, date, status ) values (?, ?, ?, ?)', (jobid, email, datetime.now(), 'Q'))
     db.commit()
+
+    check_taskserver_status()
 
     return redirect(url_for('success', uuid=jobid))
 
@@ -222,4 +246,4 @@ def upload():
 
 if __name__ == '__main__':
     app.debug = True
-    app.run('avi.bsd.uchicago.edu')
+    app.run()

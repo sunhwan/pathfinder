@@ -61,7 +61,11 @@ def check_queue(ip, port):
         db.commit()
         db.close()
 
-        if mail: mail.send(msg)
+        if mail:
+            try:
+                mail.send(msg)
+            except:
+                pass
 
 
 class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
@@ -70,6 +74,10 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
         data = self.request.recv(1024)
         handler, data = data.split(":")
         #cur_thread = threading.current_thread()
+        if handler.lower() == 'ok':
+            self.request.sendall('OK')
+            return
+            
         func = getattr(self, 'handle_%s' % handler.lower())
         newpid = os.fork()
         if newpid == 0:
