@@ -91,20 +91,30 @@ def index():
 def about():
     return render_template('about.html')
 
-@app.route('/download/<uuid>')
-def download(uuid):
+@app.route('/download/<uuid>/<filename>')
+@app.route('/download/<uuid>', defaults={'filename': None})
+def download(uuid, filename):
     jobdir = get_job_folder(uuid)
     if not os.path.exists(jobdir): abort(404)
 
-    import tarfile
-    import StringIO, glob
-    fp = StringIO.StringIO()
-    tar = tarfile.open(fileobj=fp, mode='w:gz')
-    for f in glob.glob('%s/*' % jobdir):
-        tar.add(f, arcname='pathfinder/%s' % os.path.basename(f))
-    tar.close()
-    fp.seek(0)
-    return send_file(fp, mimetype='application/x-gzip', as_attachment=True, attachment_filename='pathfinder.tar.gz')
+    if filename:
+        filename = os.path.join(jobdir, os.path.basename(filename))
+        if not os.path.exists(filename): abort(404)
+        fp = open(filename)
+        return send_file(fp, as_attachment=True, attachment_filename=os.path.basename(filename))
+
+    else:
+        import tarfile
+        import StringIO, glob
+        fp = StringIO.StringIO()
+        tar = tarfile.open(fileobj=fp, mode='w:gz')
+        excludes = ['taskmanager.py', 'err', 'out', 'run.pbs']
+        for f in glob.glob('%s/*' % jobdir):
+            if os.path.basename(f) in excludes: continue
+            tar.add(f, arcname='pathfinder/%s' % os.path.basename(f))
+        tar.close()
+        fp.seek(0)
+        return send_file(fp, mimetype='application/x-gzip', as_attachment=True, attachment_filename='pathfinder.tar.gz')
 
 @app.route('/status/<uuid>')
 def status(uuid):
