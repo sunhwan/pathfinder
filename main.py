@@ -8,6 +8,7 @@ import sqlite3
 from flask import g
 from datetime import datetime
 import conf
+import subprocess as sp
 
 ALLOWED_EXTENSIONS = set(['pdb'])
 
@@ -32,25 +33,45 @@ def init_db():
         db.commit()
 
 def get_job_folder(uuid):
-    return os.path.join(conf.UPLOAD_FOLDER, uuid)
+    return os.path.join(conf.JOB_FOLDER, uuid)
 
 def check_taskserver_status():
-    import socket
-    import subprocess as sp
-    try:
-        ip, port = open(os.path.join(conf.JOB_FOLDER, 'taskserver.info')).readline().strip().split(':')
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((ip, int(port)))
-        sock.sendall('ok:')
-        response = sock.recv(1024)
-        if response == 'OK': return True
-    except:
-        pass
+    if conf.TASKSERVER == 'pbs':
+        try:        
+            sp.check_output('qstat')
+            return True
+        except:
+            return False
+    else:
+        import socket
+        try:
+            ip, port = open(os.path.join(conf.JOB_FOLDER, 'taskserver.info')).readline().strip().split(':')
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((ip, int(port)))
+            sock.sendall('ok:')
+            response = sock.recv(1024)
+            if response == 'OK': return True
+        except:
+            pass
 
-    print 'create taskserver...'
-    sp.Popen(['python', 'taskserver.py'], cwd=conf.BASEDIR)
+        print 'create taskserver...'
+        sp.Popen(['python', 'taskserver.py'], cwd=conf.BASEDIR)
+
     return True
 
+def submit_task(jobid, email):
+    db = get_db()
+    cur = db.cursor()
+    jobdir = os.path.join(app.config['JOB_FOLDER'], jobid)
+    cur.execute('insert into job( uuid, email, date, status ) values (?, ?, ?, ?)', (jobid, email, datetime.now(), 'Q'))
+    db.commit()
+    
+    os.environ['USER'] = 'sunhwan'
+    sp.Popen(['/usr/torque/bin/qsub', 'run.pbs'], cwd=jobdir)
+    return True
+
+
+# main
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -70,7 +91,7 @@ def index():
 def about():
     return render_template('about.html')
 
-@app.route('/pathfinder/download/<uuid>')
+@app.route('/download/<uuid>')
 def download(uuid):
     jobdir = get_job_folder(uuid)
     if not os.path.exists(jobdir): abort(404)
@@ -85,7 +106,7 @@ def download(uuid):
     fp.seek(0)
     return send_file(fp, mimetype='application/x-gzip', as_attachment=True, attachment_filename='pathfinder.tar.gz')
 
-@app.route('/pathfinder/status/<uuid>')
+@app.route('/status/<uuid>')
 def status(uuid):
     cur = get_db().cursor()
     cur.execute('select * from job where uuid=?', (uuid,))
@@ -96,11 +117,11 @@ def status(uuid):
 
     return render_template('queue.html', uuid=uuid, date=date, status=status)
 
-@app.route('/pathfinder/success/<uuid>')
+@app.route('/success/<uuid>')
 def success(uuid):
     return render_template('success.html', uuid=uuid)
 
-@app.route('/pathfinder', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def pathfinder():
     if request.method == 'GET': return redirect(url_for('index'))
 
@@ -152,7 +173,8 @@ def pathfinder():
                    'static/src/step-5-make-pathway/5_makepathway_v2',
                    'static/src/prepare_input_structure_files.tcl',
                    'static/src/create_input_files_ANMPathway.pl',
-                   'static/src/non-native-contacts/find_pairs_path_v2']
+                   'static/src/non-native-contacts/find_pairs_path_v2',
+                   'static/src/taskmanager.py']
     for executable in executables:
         copy(os.path.join(conf.BASEDIR, executable), jobdir)
 
@@ -174,12 +196,11 @@ def pathfinder():
     target = request.form.get('target_rmsd', 0.1)
     fp.write(render_template('run.tpl', vmd=conf.VMD_EXECUTABLE, fc1=fc1, fc2=fc2, cutoff1=cutoff1, cutoff2=cutoff2, offset1=offset1, offset2=offset2, target=target))
 
-    db = get_db()
-    cur = db.cursor()
-    cur.execute('insert into job( uuid, email, date, status ) values (?, ?, ?, ?)', (jobid, email, datetime.now(), 'Q'))
-    db.commit()
+    fp = open(os.path.join(jobdir, 'run.pbs'), 'w')
+    fp.write(render_template('run_pbs.tpl', uuid=jobid))
 
     check_taskserver_status()
+    submit_task(jobid, email)
 
     return redirect(url_for('success', uuid=jobid))
 
