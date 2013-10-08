@@ -23,4 +23,9 @@ To change alignment of pathway please use the following command:
 
 Please go to {{ url_for('download', uuid=uuid, _external=True) }} to download the complete output.
 {% endif %}
+<p>
 
+Elapsed time:
+{% if etime > 3600 %}{{ "%d hours %d mins"|format(etime/3600, (etime-(etime/3600*3600))/60) }}
+{% elif etime < 3600 and etime > 60 %}{{ "%d mins"|format(etime/60) }}
+{% else %}{{ "%d"|format(etime) }} sec{% endif %}

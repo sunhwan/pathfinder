@@ -12,6 +12,10 @@ set fc2 = {{ fc2 }}
 set cutoff2 = {{ cutoff2 }}
 set offset2 = {{ offset2 }}
 set rmsd = {{ target }}
+set stepsize_cusp1 = {{ stepsize_cusp1 }}
+set stepsize_cusp2 = {{ stepsize_cusp2 }}
+set stepsize_slid1 = {{ stepsize_slid1 }}
+set stepsize_slid2 = {{ stepsize_slid2 }}
 
 perl -pi -e 's/\$FORCE_CONSTANT_1 = ([\.0-9]+)?;/\$FORCE_CONSTANT_1 = '$fc1';/g' create_input_files_ANMPathway.pl
 perl -pi -e 's/\$CUT_OFF_1 = ([\.0-9]+)?;/\$CUT_OFF_1 = '$cutoff1';/g' create_input_files_ANMPathway.pl
@@ -21,6 +25,10 @@ perl -pi -e 's/\$CUT_OFF_2 = ([\.0-9]+)?;/\$CUT_OFF_2 = '$cutoff2';/g' create_in
 perl -pi -e 's/\$ENERGY_OFFSET_2 = ([\.0-9]+)?;/\$ENERGY_OFFSET_2 = '$offset2';/g' create_input_files_ANMPathway.pl
 perl -pi -e 's/\$NUM_PARTICLES = ([0-9]+)?;/\$NUM_PARTICLES = '$np';/g' create_input_files_ANMPathway.pl
 perl -pi -e 's/\$RMSD_PATHWAY = ([\.0-9]+)?;/\$RMSD_PATHWAY = '$rmsd';/g' create_input_files_ANMPathway.pl
+perl -pi -e 's/\$STEP_SIZE_MINIMIZE_ON_CUSP_1 = ([\.0-9]+)?;/\$STEP_SIZE_MINIMIZE_ON_CUSP_1 = '$stepsize_cusp1';/g' create_input_files_ANMPathway.pl
+perl -pi -e 's/\$STEP_SIZE_MINIMIZE_ON_CUSP_2 = ([\.0-9]+)?;/\$STEP_SIZE_MINIMIZE_ON_CUSP_2 = '$stepsize_cusp2';/g' create_input_files_ANMPathway.pl
+perl -pi -e 's/\$STEP_SIZE_SLIDE_DOWN_1 = ([\.0-9]+)?;/\$STEP_SIZE_SLIDE_DOWN_1 = '$stepsize_slid1';/g' create_input_files_ANMPathway.pl
+perl -pi -e 's/\$STEP_SIZE_SLIDE_DOWN_2 = ([\.0-9]+)?;/\$STEP_SIZE_SLIDE_DOWN_2 = '$stepsize_slid2';/g' create_input_files_ANMPathway.pl
 ./create_input_files_ANMPathway.pl
 
 ./1_locate_struct_on_cusp_v2

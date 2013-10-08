@@ -200,11 +200,20 @@ def pathfinder():
     fc1 = request.form.get('fc1', 0.1)
     cutoff1 = request.form.get('cutoff1', 15.0)
     offset1 = request.form.get('offset1', 5.0)
+    stepsize_cusp1 = request.form.get('stepsize_cusp1', 0.8)
+    stepsize_slid1 = request.form.get('stepsize_slid1', 0.04)
     fc2 = request.form.get('fc2', 0.1)
     cutoff2 = request.form.get('cutoff2', 15.0)
     offset2 = request.form.get('offset2', 0.0)
     target = request.form.get('target_rmsd', 0.1)
-    fp.write(render_template('run.tpl', vmd=conf.VMD_EXECUTABLE, fc1=fc1, fc2=fc2, cutoff1=cutoff1, cutoff2=cutoff2, offset1=offset1, offset2=offset2, target=target))
+    stepsize_cusp2 = request.form.get('stepsize_cusp2', 0.8)
+    stepsize_slid2 = request.form.get('stepsize_slid2', 0.04)
+
+    context = {}
+    context['vmd'] = conf.VMD_EXECUTABLE
+    for k in 'fc1 cutoff1 offset1 stepsize_cusp1 stepsize_slid1 fc2 cutoff2 offset2 target stepsize_cusp2 stepsize_slid2'.split():
+        context[k] = locals()[k]
+    fp.write(render_template('run.tpl', **context))
 
     fp = open(os.path.join(jobdir, 'run.pbs'), 'w')
     fp.write(render_template('run_pbs.tpl', uuid=jobid))
