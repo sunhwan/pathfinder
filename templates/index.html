@@ -168,14 +168,14 @@ function myalert(msg) {
         <td>Force constant</td>
         <td>
           <input type="text" name='fc1' value='0.1' class="input-mini" style="height: 14px; line-height: 14px;" required>
-          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Force constant for the ANM around end structure 1">?</a>
         </td>
       </tr>
       <tr>
         <td>Cut-off</td>
         <td>
           <input type="text" name='cutoff1' value='15.0' class="input-mini" style="height: 14px; line-height: 14px;" required>
-          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Cut-off distance for the ANM around end structure 1">?</a>
         </td>
       </tr>
       <tr>
@@ -189,14 +189,14 @@ function myalert(msg) {
         <td>Step size (on cusp)</td>
         <td>
           <input type="text" name='stepsize_cusp1' value='0.8' class="input-mini" style="height: 14px; line-height: 14px;" required>
-          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Starting step-size for the minimization on the cusp hypersurface. If this is too large it will be adjusted systematically.">?</a>
         </td>
       </tr>
       <tr>
         <td>Step size (slide down)</td>
         <td>
           <input type="text" name='stepsize_slid1' value='0.04' class="input-mini" style="height: 14px; line-height: 14px;" required>
-          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Starting step-size for the steepest descent minimization on surface 1 (defined by the ANM around end structure 1). The step-size will be adjusted if found inadequate.">?</a>
         </td>
       </tr>
     </table>
@@ -213,14 +213,14 @@ function myalert(msg) {
         <td>Force constant</td>
         <td>
           <input type="text" name='fc2' value='0.1' class="input-mini" style="height: 14px; line-height: 14px;" required>
-          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Force constant for the ANM around end structure 2">?</a>
         </td>
       </tr>
       <tr>
         <td>Cut-off</td>
         <td>
           <input type="text" name='cutoff2' value='15.0' class="input-mini" style="height: 14px; line-height: 14px;" required>
-          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Cut-off distance for the ANM around end structure 2">?</a>
         </td>
       </tr>
       <tr>
@@ -234,14 +234,14 @@ function myalert(msg) {
         <td>Step size (on cusp)</td>
         <td>
           <input type="text" name='stepsize_cusp2' value='0.8' class="input-mini" style="height: 14px; line-height: 14px;" required>
-          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Starting step-size for the minimization on the cusp hypersurface. If this is too large it will be adjusted systematically.">?</a>
         </td>
       </tr>
       <tr>
         <td>Step size (slide down)</td>
         <td>
           <input type="text" name='stepsize_slid2' value='0.04' class="input-mini" style="height: 14px; line-height: 14px;" required>
-          <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly">?</a>
+          <span class='badge' data-toggle="popover" data-placement="right" data-content="Starting step-size for the steepest descent minimization on surface 2 (defined by the ANM around end structure 2). The step-size will be adjusted if found inadequate.">?</a>
         </td>
       </tr>
     </table>
@@ -253,7 +253,7 @@ function myalert(msg) {
   <label class="control-label">Target RMSD</label>
   <div class="controls">
     <input type="text" name='target_rmsd' value='0.1' class="input-mini" style="height: 14px; line-height: 14px;" required>
-    <span class='badge' data-toggle="popover" data-placement="right" data-content="Explain what this value means briefly" required>?</a>
+    <span class='badge' data-toggle="popover" data-placement="right" data-content="RMSD difference between two consecutive structure in the final pathway." required>?</a>
   </div>
 </div>
 
