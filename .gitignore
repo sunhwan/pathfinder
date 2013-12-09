@@ -2,7 +2,7 @@
 /static/src/
 *.pyc
 .DS_Store
-
+conf.py
 /static/font/
 /taskserver.info
 /taskserver.log
