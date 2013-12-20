@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+});
+</script>
+
 <div class="jumbotron">
   <h1>ANM Pathway</h1>
   <p class="lead">Find transition pathway between two protein conformations</p>
@@ -11,9 +18,100 @@
 <div class="row-fluid marketing">
 <h4>ANM Pathway</h4>
 <p class="text-left">
-Many biomolecules are like tiny molecular machines that need to change their shapes and visit many states to perform their biological functions. For a complete molecular understanding of a biological process, one needs to have information on the relevant stable states of the system in question, as well as the pathways by which the system travels from one state to another. We report here an efficient computational method that uses the knowledge of experimental structures of a pair of stable states in order to construct an energetically favoravle pathway between them. We adopt a simple representation of the molecular system by replacing the atoms with beads connected by springs and constructing an energy function with two minima around the end states. We searched for the structure with highest energy that the system is most likely to visit during the transition and created two paths starting from this structure and proceeding toward the end states. The combined result of these two paths is the minimum energy pathway between the two stable states. We apply this method to study important structural changes in one enzyme and three large proteins that transport small molecules and ions across the cell membrane.
+Many biomolecules are like tiny molecular machines that need to change their shapes and visit many states to perform
+their biological functions. For a complete molecular understanding of a biological process, one needs to have
+information on the relevant stable states of the system in question, as well as the pathways by which the system
+travels from one state to another. <i>ANM Pathway</i> provides an efficient computational method that uses the knowledge of
+experimental structures of a pair of stable states in order to construct an energetically favoravle pathway between
+them. <i>ANM Pathway</i> adopts a simple representation of the molecular system by replacing the atoms with beads
+connected by springs and constructing an energy function with two minima around the end states. The algorithm searches
+for the structure with highest energy that the system is most likely to visit during the transition and created two
+paths starting from this structure and proceeding toward the end states. The combined result of these two paths is the
+minimum energy pathway between the two stable states. Our method has been aapplied to study important structural
+changes in one enzyme and three large proteins that transport small molecules and ions across the cell membrane.
 
 </p>
+
+<h4>Method</h4>
+<p class="text-left">
+The goal of the <i>ANMPathway</i> method is to construct a transition pathway between two endstates of a conformational transition. The pathway is represented by a chain of states (conformers/images) where conformers are typically separated by a fixed RMSD. Themacromolecular structure is described by a coarse-grained (CG) model where a CG site is placed at the position of the Cα atom of each residue. There are several ways todescribe the interaction of such a CG model built from an experimental structure e.g. elastic network model and Gō model [57,58]. By construction the energy functions employedin such knowledge based CG models are applicable near the experimental structure used to construct the model. However, for describing a conformational transition between two stablestates, we need an energy function that is applicable for large distortions from the experimental structures. In the presence of structural data on the end states, it isreasonable to construct a potential energy function with two minima centred around the endpoints of the transition. One obvious route to such two-state potentials involvescreating two separate energy surfaces that are defined around one of the end states and then combine these surfaces by an empirical rule. We have adopted this strategy and usedtwo anisotropic network models [38] and a very simple mixing rule to construct an energy function with two minima.
+</p>
+
+<p class="text-left">
+For a protein with N residues, the configuration of the system is denoted by a \( 3N \)dimensional vector \( \mathbf{X} = \{ \mathbf{x_1}, \mathbf{x_2}, . . . , \mathbf{x_N} \} \) where, \( \mathbf{x_i} \) is a three dimensional vector giving the position of the <i>i</i>th site (C<sub>α</sub> atom of the <i>i</i>th residue). An anisotropic network model (ANM) is an elastic network model defined around an experimental structure (e.g. crystal or NMR structure) \( \mathbf{X^0} = \{ \mathbf{x_1^0}, \mathbf{x_2^0}, . . . , \mathbf{x_N^0} \} \) with the following energy function
+
+$$
+\begin{eqnarray}
+U_{anm} (\mathbf{X}) = k\sum_{i \lt j} C_{ij} \frac{1}{2} \left( \left|\Delta \mathbf{x}_{ij} \right| - \left|\Delta \mathbf{x}^0_{ij}\right|\right)^2 + U^0
+\end{eqnarray}
+$$
+
+Here \( | \Delta \mathbf{x}_{ij} | = |\mathbf{x}_i − \mathbf{x}_j | \) is the distance between nodes \(i\) and \(j\), \(k\) is the uniform force constant, \(C_{ij}\) is an element of the contact matrix defined by
+
+$$
+\begin{eqnarray}
+C_{ij} &=& 1 \quad \textrm{ for } |\Delta \mathbf{x}_{ij}^0| \le R_c\\
+              &=& 0 \quad \textrm{ otherwise},
+\end{eqnarray}
+$$
+
+\(R_c\) is the cut-off distance and \(U_0\) is the energy of the system at the reference state. The advantage of including the \(U_0\) term is that it allows us to create energy difference between the end states when more than one ENM are included in the model. In order to construct the potential function we first define two ANM energy functions, \(U_A (\mathbf{X})\) and \(U_B(\mathbf{X})\), centred around the end structures \(\mathbf{X}^0_A\) and \(\mathbf{X}^0_B\) and combine them by the following mixing rule,
+
+$$
+\begin{eqnarray}
+U(\mathbf{X}) = \min\left\{U_{A}\big(\mathbf{X}\big), U_{B}\big(\mathbf{X}\big)\right\}
+\end{eqnarray}
+$$
+
+The energy difference between the end states of this two-state ENM is \(U_A^0 − U_B^0\) .
+
+The two-state potential based on Eq. (4) has a cusp in the \( 3N \) dimensional configuration space. Even though potential energy functions developed for real systems are differentiable everywhere, we will show that the simple two-state potential is a reasonable first approximation and is capable of capturing important qualitative features of the conformational transition in question. Both the ANM energy functions are 3N dimensional harmonic surfaces and the hyper-surface where they intersect (i.e. where the energies from both the ANM surfaces are same) is another harmonic surface of dimension \( 3N − 1 \). We define the transition state of the two-state potential as the minimum energy structure on the cusp hyper-surface. Given a sequence of conformers that linearly interpolates the Cartesian distance between two conformers that reside on the opposite sides of the cusp, it is possible to identify a conformer that has equal energies, within a tolerance, from both the ANM surfaces. This conformer, by construction, resides on the cusp hyper-surface. This simple observation allows us to devise an algorithm to search for the energy minimum on the cusp hyper-surface i.e. the transition state. Once we have identified the transition state, we can start from there and slide down the harmonic surfaces until we reach the endpoints, by performing two separate steepest descent minimizations. In the end, we collect all the conformers in proper order to construct the transition pathway. The pathway obtained by <i>ANMPathway</i> can be regarded as the minimum energy path between the end structures since it is the combination of two steepest descent paths on two surfaces joined at the transition state which is the minimum energy conformer on the cusp hyper-surface. A detailed description of the algorithm is given below.
+
+<ol>
+<li>Two end structures are represented by the positions of their C<sub>α</sub> atoms. These structures are aligned and \(M − 2\) new intermediate conformers/images are generated by linearly interpolating between the end structures.
+</li>
+<li>
+For each image the energy is determined using the two state potential defined in Eq. (4). We identify the conformer \(\mathbf{X}^\dagger\) for which energies from both the surfaces (i.e. \(U_A(\mathbf{X}^\dagger)\) and \(U_B(\mathbf{X}^\dagger)\)) are equal within a tolerance \(\epsilon^\dagger\).
+</li>
+<li>Starting from \(X^\dagger\) the transition state is searched by the following iterative procedure:
+  <ol>
+  <li type='a'>With appropriate choices of step-sizes \(s_A\) and \(s_B\) and knowledge of transition state for the present iteration \(\mathbf{X}^
+  \dagger (n)\), one step of steepest descent minimization is carried out on each surface using the force of the respective surface and two new sets of coordinates, \(\mathbf{X}^A(n + 1) = \{ \mathbf{x}^A_1 (n+1), \mathbf{x}^A_2 (n+1),..., \mathbf{x}^A_N(n+1)\}\) and \(\mathbf{X}^B(n + 1) = \{ \mathbf{x}^B_1 (n+1), \mathbf{x}^B_2 (n+1),..., \mathbf{x}^B_N(n+1)\}\) are generated, where 
+
+$$  
+\begin{eqnarray}
+\mathbf{x}_i^{A}(n+1) &=& \mathbf{x}_i^{\dagger}(n) + \Delta s_A \mathbf{f}_i^{A}(n) \\
+\mathbf{x}_i^{B}(n+1) &=& \mathbf{x}_i^{\dagger}(n) + \Delta s_B \mathbf{f}_i^{B}(n)
+\end{eqnarray}
+$$
+
+  and
+
+$$
+\begin{eqnarray}
+\mathbf{f}_i^{A} = -\frac{\partial U_{A}\big(\mathbf{X}\big)}{\partial \mathbf{x}_i} \textrm{ and } \mathbf{f}_i^{B} = -\frac{\partial U_{B}\big(\mathbf{X}\big)}{\partial \mathbf{x}_i}.
+\end{eqnarray}
+$$
+  </li>
+
+  <li>
+￼￼A linear interpolation is performed between \(\mathbf{X}^A(n+1)\) and \(\mathbf{X}^B(n+1)\) to find out the conformer that resides on the cusp. This is the new approximation for transition state i.e. \mathbf{X}^\dagger(n + 1)\).
+  </li>
+
+  <li>We iterate steps (3a) and (3b) until the energy difference between two transition state conformers, obtained in two successive iterations, is less than a tolerance \( \epsilon_{conv} \).
+  </li>
+  </ol>
+
+<li>Two separate steepest descent minimizations are performed, one on each surface, starting from the final transition state conformation \(\mathbf{X}^\dagger_f\) and conformers separated by a predetermined RMSD are collected.
+</li>
+<li>Conformers are indexed in the following sequence to construct a pathway: end structure A, conformers collected on surface A with increasing RMSD from the end structure A, transition state conformer \(\mathbf{X}^\dagger_f\), conformers collected on surface B with decreasing RMSD from the end structure B, end structure B.
+</li>
+</ol>
+
+The values of several parameters need to be specified before performing the calculation. The two state potential function is characterized by the force constants and cut-off distances of both the ANMs along with the end point structures. The overall qualitative features of the pathways were found to be quite insensitive to these choices for all the systems we studied. If desired the force constant can be estimated by fitting the crystallographic B-factors for a realistic estimate of the energy scale. The energy offsets can be tuned if there are experimental information on the relative energies of the end states. The most important parameters for an efficient implementation of the algorithm is the step-sizes for both the ANM surface for the transtiiton state search on the cusp hypersurface (\(s_A\) and \(s_B\) in step 3a). If step-sizes are too large then the resultant movement of the transition state structure is too large and the minimization algorithm does not work. On the other hand if the chosen values are too small then the convergence becomes slow. For optimal values of step-sizes short trial runs are performed for several choices, starting from large values and systematically decreasing them at each trial run until the energy of the transition state conformer decreases monotonically for the entire duration of the trial run. Our experience shows that very few short trial runs are sufficient for finding the optimal values of sA and sB and the overall
+procedure is extremely efficient.
+</p>
+
 <h4>References</h4>
 <ol>
   <li>Exploring the conformational transitions of biomolecular systems using a simple two-state anisotropic network model. <b>Avisek Das</b>, Mert Gur, Mary Hongying Cheng, Sunhwan Jo, Ivet Bahar, Benoit Rout (2013) <i>Submitted</i></li>
