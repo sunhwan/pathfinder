@@ -67,7 +67,15 @@ def submit_task(jobid, email):
     db.commit()
     
     os.environ['USER'] = 'sunhwan'
-    sp.Popen(['/usr/torque/bin/qsub', 'run.pbs'], cwd=jobdir)
+    p = sp.Popen(['/usr/torque/bin/qsub', 'run.pbs'], cwd=jobdir, stdout=sp.PIPE, stderr=sp.PIPE)
+    pid = p.communicate()[0]
+
+    from flask_mail import Mail, Message
+    mail = Mail(app)
+    msg = Message('[ANMPathway] Your job is submitted.', sender=conf.ADMIN_EMAIL, recipients=[email], bcc=[conf.ADMIN_EMAIL, conf.EXTRA_EMAIL])
+    msg.html = render_template('email_submit.tpl', uuid=jobid)
+    mail.send(msg)
+
     return True
 
 
@@ -87,6 +95,10 @@ def page_not_found(e):
 def index():
     return render_template('index.html')
 
+@app.route('/tutorial')
+def tutorial():
+    return render_template('tutorial.html')
+
 @app.route('/about')
 def about():
     return render_template('about.html')
@@ -101,6 +113,8 @@ def download(uuid, filename):
         filename = os.path.join(jobdir, os.path.basename(filename))
         if not os.path.exists(filename): abort(404)
         fp = open(filename)
+        if filename.endswith('gif'):
+            return send_file(fp, as_attachment=False, attachment_filename=os.path.basename(filename))
         return send_file(fp, as_attachment=True, attachment_filename=os.path.basename(filename))
 
     else:
@@ -111,10 +125,10 @@ def download(uuid, filename):
         excludes = ['taskmanager.py', 'err', 'out', 'run.pbs']
         for f in glob.glob('%s/*' % jobdir):
             if os.path.basename(f) in excludes: continue
-            tar.add(f, arcname='pathfinder/%s' % os.path.basename(f))
+            tar.add(f, arcname='anmpathway/%s' % os.path.basename(f))
         tar.close()
         fp.seek(0)
-        return send_file(fp, mimetype='application/x-gzip', as_attachment=True, attachment_filename='pathfinder.tar.gz')
+        return send_file(fp, mimetype='application/x-gzip', as_attachment=True, attachment_filename='anmpathway.tar.gz')
 
 @app.route('/status/<uuid>')
 def status(uuid):
@@ -124,7 +138,6 @@ def status(uuid):
     uuid, email, date, status = row
 
     check_taskserver_status()
-
     return render_template('queue.html', uuid=uuid, date=date, status=status)
 
 @app.route('/success/<uuid>')
@@ -184,7 +197,8 @@ def pathfinder():
                    'static/src/prepare_input_structure_files.tcl',
                    'static/src/create_input_files_ANMPathway.pl',
                    'static/src/non-native-contacts/find_pairs_path_v2',
-                   'static/src/taskmanager.py']
+                   'static/src/taskmanager.py',
+                   'static/src/movie.tcl']
     for executable in executables:
         copy(os.path.join(conf.BASEDIR, executable), jobdir)
 
@@ -217,6 +231,7 @@ def pathfinder():
 
     fp = open(os.path.join(jobdir, 'run.pbs'), 'w')
     fp.write(render_template('run_pbs.tpl', uuid=jobid))
+    fp.close()
 
     check_taskserver_status()
     submit_task(jobid, email)

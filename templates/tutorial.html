@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+});
+</script>
+
+<div class="row-fluid marketing">
+<h4>Tutorial</h4>
+<p class="text-left">
+<i>ANMPathway</i> provides an efficient computational method that generates an energetically favorable pathway between
+a pair of stable states. The algorithm searches for the structure with highest energy that the system is most likely
+to visit during the transition and created two paths starting from this structure and proceeding toward the end states. 
+Here, we will use an example to demonstrate how to use our web interface.
+
+</p>
+
+<h4>STEP 1</h4>
+<p class="text-left">
+We will use open and closed state of adenylate kinase structures, <a href="http://rcsb.org/pdb/explore/explore.do?structureId=4ake">PDB:4AKE</a> and <a href="http://rcsb.org/pdb/explore/explore.do?structureId=1ake">PDB:1AKE</a>, respectively, for our example.
+
+<img src="{{ url_for('static', filename='tutorial/step1.png') }}">
+</p>
+
+<h4>STEP 2</h4>
+<p class="text-left">
+Adenylate kinase is monomeric protein, however, these PDB files contain two copies of the monomeric units. Thus, chain B is deselcted. We will use default parameters for the calculation.
+
+<img src="{{ url_for('static', filename='tutorial/step2.png') }}">
+</p>
+
+<h4>STEP 3</h4>
+<p class="text-left">
+Because some calculations can take long time, we use queueing system for the calculation. You can use the link provided to monitor the status of your job. Notification e-mails will be sent to the provided e-mail address when the job is submitted, started, and finished. 
+
+<img src="{{ url_for('static', filename='tutorial/step3.png') }}">
+</p>
+
+<h4>STEP 4</h4>
+<p class="text-left">
+When the calculation is done, a set of output files are delievered to the e-mail address provided. These output files are: 
+<ul>
+  <li><i><a href="{{ url_for('static', filename='tutorial/output/pathway.pdb') }}">pathway.pdb</a></i> This PDB contains a snapshots of transition pathway between the end states. A movie of conformational transition can be played in several molecular viewers, such as PyMOL and VMD</li>
+  <li><i><a href="{{ url_for('static', filename='tutorial/output/movie.gif') }}">movie.gif</a></i> This is an example movie generated based on <i>pathway.pdb</i></li>
+  <li><i><a href="{{ url_for('static', filename='tutorial/output/close_contacts_5.0_10.0') }}">close_contacts_5.0_10.0</a></i> This text file contains a list of residue paris that were in close contact (< 5 Å) durin the transition but became separated in the end state (> 10 Å). Unfortunately, adenylate kinase does not have any residue pair that satisfy this condition and this file is empty.</li>
+</ul>
+</p>
+</div>
+{% endblock %}

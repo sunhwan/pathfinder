@@ -77,14 +77,18 @@ function myalert(msg) {
 {% endblock %}
 
 {% block content %}
-<div class="jumbotron">
-  <h1>ANM Pathway</h1>
-  <p class="lead">Find transition pathway between two protein conformations</p>
-</div>
-
-<hr>
-
 <form class="form-horizontal" enctype="multipart/form-data" method="POST" id='form' action="{{ action|default(url_for('upload')) }}">
+
+{% if not chains %}
+<div class="alert alert-info">Please upload two PDB files that represent initial and final state structures.
+<ul>
+  <li>These PDB files can contain multiple chains, however, it is assumed that the chains are ordered identically in both PDB files.</li>
+  <li>Some PDB files contains multiple copies of monomeric protein chains. In this case, user must include only the monomeric chains.</li>
+  <li>Both PDB files must have same number of residues. A simple chain selection tool is provided after uploading PDB files, but, if you encounter problem, please edit the PDB files manually.</li>
+</ul>
+</div>
+{% endif %}
+
 <div class="control-group">
   <label class="control-label">Initial PDB</label>
   <div class="controls">
@@ -273,7 +277,7 @@ function myalert(msg) {
 
 <div class="control-group">
   <div class="controls">
-    <button class="btn" type="submit">Run ANM Pathway</button>
+    <button class="btn" type="submit">Run ANMPathway</button>
   </div>
 </div>
 {% endif %}

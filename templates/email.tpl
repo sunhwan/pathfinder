@@ -8,11 +8,12 @@ Please use the following link to download the resulting pathway.
 
 <ul>
 <li> <a href="{{ url_for('download', uuid=uuid, filename='pathway.pdb', _external=True) }}">pathway.pdb</a> (resulting pathway from the initial and final structures)</li>
-<li> <a href="{{ url_for('download', uuid=uuid, filename='close_contacts_5.0_10.0', _external=True) }}">close_contacts_5.0_10.0</a> (residues in close contact in pathway)</li>
+<li> <a href="{{ url_for('download', uuid=uuid, filename='movie.gif', _external=True) }}">movie.gif</a> (movie of the resulting pathway)</li>
+<li> <a href="{{ url_for('download', uuid=uuid, filename='close_contacts_5.0_10.0', _external=True) }}">close_contacts_5.0_10.0</a> (list of residue paris that were in close contact (< 5 Å) durin the transition but became separated in the end state (> 10 Å))</li>
 </ul>
 <p>
 
-To change alignment of pathway please use the following command:
+The transition pathway can be visualized in several molecular viewers, such as PyMOL and VMD. To change alignment of pathway please use the following command:
 
 <blockquote>
 <pre>

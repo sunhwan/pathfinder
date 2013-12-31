@@ -54,10 +54,14 @@ CUT_OFF 5.0\
 SEPERATION_END_STATES 10.0" > INPUT_FIND_CLOSE_PAIRS
 ./find_pairs_path_v2
 
+$vmd -dispdev none -e movie.tcl > movie.out
+convert -loop 4 frame.*.rgb movie.gif
+
 tar -czf COORDS_IMAGES.tar.gz COORDS_IMAGE_*
 tar -czf COORDS_SURFACE.tar.gz OUT_COORDS_SURFACE_*
 tar -czf contact_pairs.tar.gz distance_*
 rm -f COORDS_IMAGE_*
 rm -f OUT_COORDS_SURFACE_*
 rm -f distance_*
+rm -f *.rgb
 
