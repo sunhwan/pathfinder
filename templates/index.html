@@ -43,11 +43,42 @@ $(document).ready(function() {
 
   $('#form').submit(function() {
     is_valid = true;
-{% if chains %}
+{% if step == 1 %}
     if (!$('input[type=email]').val()) {
       myalert('Email address is required');
       is_valid = false;
     }
+
+    var pdb1 = [];
+    $('input[type=checkbox][name=chains1]').each(function(idx, val) {
+      if (val.checked) {
+        $('input[type=text][name="chain1.'+val.value+'.from"]').each(function(idx, val) {
+          pdb1.push($(val).next()[0].value - val.value);
+        })
+      }
+    })
+
+    var pdb2 = [];
+    $('input[type=checkbox][name=chains2]').each(function(idx, val) {
+      if (val.checked) {
+        $('input[type=text][name="chain2.'+val.value+'.from"]').each(function(idx, val) {
+          pdb2.push($(val).next()[0].value - val.value);
+        })
+      }
+    })
+
+    for (var i=0; i<pdb1.length; i++) {
+      if (pdb1[i] != pdb2[i]) {
+        myalert('Some selection(s) has different number of residues selected');
+        is_valid = false;
+      }
+    }
+
+    if (pdb1.length != pdb2.length) {
+      myalert('Please select same number of selection for each PDB');
+      is_valid = false;
+    } 
+    
 {% else %}
     filename = '';
     $('input[type=file]').each(function() {
@@ -65,6 +96,7 @@ $(document).ready(function() {
         filename = this.value;
       }
     })
+
 {% endif %}
     return is_valid;
   });
@@ -79,12 +111,12 @@ function myalert(msg) {
 {% block content %}
 <form class="form-horizontal" enctype="multipart/form-data" method="POST" id='form' action="{{ action|default(url_for('upload')) }}">
 
-{% if not chains %}
+{% if step != 1 %}
 <div class="alert alert-info">Please upload two PDB files that represent initial and final state structures.
 <ul>
-  <li>These PDB files can contain multiple chains, however, it is assumed that the chains are ordered identically in both PDB files.</li>
-  <li>Some PDB files contains multiple copies of monomeric protein chains. In this case, user must include only the monomeric chains.</li>
-  <li>Both PDB files must have same number of residues. A simple chain selection tool is provided after uploading PDB files, but, if you encounter problem, please edit the PDB files manually.</li>
+  <li>ANMPathway performs calculations for two chains containing the same number and order of residues. Please verify that your input files contain the same number of residues, and if not, edit manually one or both input files.</li>
+  <li>ANMPathway processes multiple chains assuming that they are listed in the same order in the two uploaded files.</li>
+  <li>Some PDB files contains multiple copies of monomers in the asymmetric unit. If users are interested in a transition undergone by a given chain (and the PDB file contains multiple chains), they should edit the input PDB file (or use chain selection tool provided in the next step) to remove the coordinates of all chains other than the selected chain.</li>
 </ul>
 </div>
 {% endif %}
@@ -105,6 +137,35 @@ function myalert(msg) {
   </div>
 </div>
 
+{% if chains1 %}
+<div class="control-group">
+  <label class="control-label">Chains for initial PDB</label>
+  <div class="controls">
+
+<table class='table-condensed'>
+{% for k,v in chains1 %}
+  <tr>
+    <td>
+      <label class="checkbox inline" style="padding-top: 0px;">
+        <input type="checkbox" name="chains1" value="{{ k }}" checked> {{ k }}
+      </label>
+    </td>
+    <td>
+      <span style='width: 15px; display: inline-block;'></span>
+      <input type="text" value="{{ v.0 }}" name="chain1.{{k}}.from" style="height: 14px; line-height: 14px;" class="input-mini" required>
+      to
+      <input type="text" value="{{ v.1 }}" name="chain1.{{k}}.to"   style="height: 14px; line-height: 14px;" class="input-mini" required>
+    </td>
+    <td>
+      <i class="iconic-o-plus"></i>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+  </div>
+</div>
+{% endif %}
+
 <div class="control-group">
   <label class="control-label">Final PDB</label>
   <div class="controls">
@@ -121,7 +182,36 @@ function myalert(msg) {
   </div>
 </div>
 
-{% if not chains %}
+{% if chains2 %}
+<div class="control-group">
+  <label class="control-label">Chains for final PDB</label>
+  <div class="controls">
+
+<table class='table-condensed'>
+{% for k,v in chains2 %}
+  <tr>
+    <td>
+      <label class="checkbox inline" style="padding-top: 0px;">
+        <input type="checkbox" name="chains2" value="{{ k }}" checked> {{ k }}
+      </label>
+    </td>
+    <td>
+      <span style='width: 15px; display: inline-block;'></span>
+      <input type="text" value="{{ v.0 }}" name="chain2.{{k}}.from" style="height: 14px; line-height: 14px;" class="input-mini" required>
+      to
+      <input type="text" value="{{ v.1 }}" name="chain2.{{k}}.to"   style="height: 14px; line-height: 14px;" class="input-mini" required>
+    </td>
+    <td>
+      <i class="iconic-o-plus"></i>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+  </div>
+</div>
+{% endif %}
+
+{% if step != 1 %}
 <div class="control-group" id='message'{% if not error or error.code == 200 %} style="display: none"{% endif %}>
   <div class="controls">
     <span class="help-inline alert alert-error">{% if error and error.code != 200 %}{{ error.message }}{% endif %}</span>
@@ -135,34 +225,7 @@ function myalert(msg) {
 </div>
 {% endif %}
 
-{% if chains %}
-<div class="control-group">
-  <label class="control-label">Chains</label>
-  <div class="controls">
-
-<table class='table-condensed'>
-{% for k,v in chains %}
-  <tr>
-    <td>
-      <label class="checkbox inline" style="padding-top: 0px;">
-        <input type="checkbox" name="chains" value="{{ k }}" checked> {{ k }}
-      </label>
-    </td>
-    <td>
-      <span style='width: 15px; display: inline-block;'></span>
-      <input type="text" value="{{ v.0 }}" name="chain.{{k}}.from" style="height: 14px; line-height: 14px;" class="input-mini" required>
-      to
-      <input type="text" value="{{ v.1 }}" name="chain.{{k}}.to"   style="height: 14px; line-height: 14px;" class="input-mini" required>
-    </td>
-    <td>
-      <i class="iconic-o-plus"></i>
-    </td>
-  </tr>
-{% endfor %}
-</table>
-  </div>
-</div>
-
+{% if step == 1 %}
 <div class="control-group">
   <label class="control-label">Parameter for Initial PDB</label>
   <div class="controls">

@@ -158,12 +158,18 @@ def pathfinder():
 
     if not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], request.form.get('pdb1', ''))): flag = 590
     if not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], request.form.get('pdb2', ''))): flag = 590
-    if not request.form.getlist('chains'): flag = 591
+    if not request.form.getlist('chains1'): flag = 591
+    if not request.form.getlist('chains2'): flag = 591
     if not request.form.getlist('email'): flag = 592
 
-    for chain in request.form.getlist('chains'):
-        resid1 = map(int, request.form.getlist('chain.%s.from' % chain))
-        resid2 = map(int, request.form.getlist('chain.%s.to' % chain))
+    for chain in request.form.getlist('chains1'):
+        resid1 = map(int, request.form.getlist('chain1.%s.from' % chain))
+        resid2 = map(int, request.form.getlist('chain1.%s.to' % chain))
+        if len(resid1) != len(resid2): flag = 593
+
+    for chain in request.form.getlist('chains2'):
+        resid1 = map(int, request.form.getlist('chain2.%s.from' % chain))
+        resid2 = map(int, request.form.getlist('chain2.%s.to' % chain))
         if len(resid1) != len(resid2): flag = 593
 
     for pname in ['fc1', 'fc2', 'cutoff1', 'cutoff2', 'offset1', 'offset2']:
@@ -183,7 +189,8 @@ def pathfinder():
     pdb1_uploaded = os.path.join(app.config['UPLOAD_FOLDER'], pdb1)
     pdb2_uploaded = os.path.join(app.config['UPLOAD_FOLDER'], pdb2)
     email = request.form['email']
-    chains = request.form.getlist('chains')
+    chains1 = request.form.getlist('chains1')
+    chains2 = request.form.getlist('chains2')
 
     from shutil import copy
     copy(pdb1_uploaded, os.path.join(jobdir, pdb1))
@@ -202,11 +209,19 @@ def pathfinder():
     for executable in executables:
         copy(os.path.join(conf.BASEDIR, executable), jobdir)
 
-    fp = open(os.path.join(jobdir, 'INPUT_INFO_STRUCTURES'), 'w')
-    fp.write("%s %s\n" % (pdb1, pdb2))
-    for chain in chains:
-        resid1 = map(int, request.form.getlist('chain.%s.from' % chain))
-        resid2 = map(int, request.form.getlist('chain.%s.to' % chain))
+    fp = open(os.path.join(jobdir, 'INPUT_STRUCTURE_INFO_ENDPOINT_1'), 'w')
+    fp.write("%s\n" % (pdb1))
+    for chain in chains1:
+        resid1 = map(int, request.form.getlist('chain1.%s.from' % chain))
+        resid2 = map(int, request.form.getlist('chain1.%s.to' % chain))
+        fp.write("%s %s\n" % (chain, " ".join(['%d to %d' % (resid1[i], resid2[i]) for i in range(len(resid1))])))
+    fp.close()
+
+    fp = open(os.path.join(jobdir, 'INPUT_STRUCTURE_INFO_ENDPOINT_2'), 'w')
+    fp.write("%s\n" % (pdb2))
+    for chain in chains2:
+        resid1 = map(int, request.form.getlist('chain2.%s.from' % chain))
+        resid2 = map(int, request.form.getlist('chain2.%s.to' % chain))
         fp.write("%s %s\n" % (chain, " ".join(['%d to %d' % (resid1[i], resid2[i]) for i in range(len(resid1))])))
     fp.close()
 
@@ -284,20 +299,24 @@ def upload():
     pdb2.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     pdb2_chains = _count_chain_resid(filename)
 
-    if pdb1_chains != pdb2_chains:
-        error={'code': 503, 'message': 'The chain lengths of two PDB are different'}
-        return render_template('index.html', error=error)
+    #if pdb1_chains != pdb2_chains:
+    #    error={'code': 503, 'message': 'The chain lengths of two PDB are different'}
+    #    return render_template('index.html', error=error)
 
     if filecmp.cmp(os.path.join(app.config['UPLOAD_FOLDER'], pdb1.filename), \
                    os.path.join(app.config['UPLOAD_FOLDER'], pdb2.filename)):
         error={'code': 504, 'message': 'Two PDB files are identical'}
         return render_template('index.html', error=error)        
 
-    chains = []
+    chains1 = []
     for k in sorted(pdb1_chains.keys()):
-        chains.append((k, pdb1_chains[k]))
+        chains1.append((k, pdb1_chains[k]))
 
-    return render_template('index.html', error=error, chains=chains, pdb1=pdb1, pdb2=pdb2, action=url_for('pathfinder'))
+    chains2 = []
+    for k in sorted(pdb2_chains.keys()):
+        chains2.append((k, pdb2_chains[k]))
+
+    return render_template('index.html', error=error, chains1=chains1, chains2=chains2, pdb1=pdb1, pdb2=pdb2, step=1, action=url_for('pathfinder'))
 
 if __name__ == '__main__':
     app.debug = True
