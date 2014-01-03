@@ -1,0 +1,177 @@
+Instructions for compilation
+============================
+After untaring the tarball, there will be five directories with the following names
+
+step-1-find-initial-point
+step-2-minimize-on-cusp
+step-3-slide-down
+step-4-collect-structures
+step-5-make-pathway
+
+Go to each of these directories and type "make".
+
+After compilations executables used in the following steps are arranged as follows
+
+"1_locate_struct_on_cusp_v2" is in "step-1-find-initial-point"
+"2_find_min_on_cusp_v4" is in "step-2-minimize-on-cusp"
+"3_desc_one_surface_v3" is in "step-3-slide-down"
+"4_collec_ener_v2" is in "step-4-collect-structures"
+"5_makepathway_v2" is in "step-5-make-pathway"
+
+Copy all these executables in the current directory.
+
+ $ cp step-1-find-initial-point/1_locate_struct_on_cusp_v2 .
+ $ cp step-2-minimize-on-cusp/2_find_min_on_cusp_v4 .
+ $ cp step-3-slide-down/3_desc_one_surface_v3 .
+ $ cp step-4-collect-structures/4_collec_ener_v2 .
+ $ cp step-5-make-pathway/5_makepathway_v2 .
+
+ 
+
+Instructions for running the ANMPathway method
+==============================================
+Commands are preceded with $.
+
+The entire calculation is divided in several steps.
+
+Step 0: Generating input files
+------------------------------
+
+Step 0.1: Preparation of initial structure files
+------------------------------------------------
+
+In this step two PDB files for the two end states are processed and converted to multiple input files.
+
+Perform the following steps:
+
+a. Edit the "INPUT_INFO_STRUCTURES" file.
+   - First line contains the names of the two input PDB files. First entry is for
+     end state 1 and the second entry is for end state 2.
+   - First character of the second line is the chain id. The rest of the line specifies the
+     residue range that will be included in the calculation. If you have multiple chains
+     then there should be one such line for each chain.
+	 
+b. Run the script "prepare_input_strucutre_files.tcl"
+  
+    $ vmd -dispdev none -e prepare_input_strucutre_files.tcl
+   
+   Input PDB files need to be in the same directory. This step will produce the following 
+   output files
+   - 1_CA.pdb
+   - 2_CB.pdb
+   - INPUT_STRUCTURE_1
+   - INPUT_STRUCTURE_2
+   - PDB_INFO
+   - REFERENCE_FOR_ALIGNMENT
+   - structure_prep.log
+
+
+Step 0.2: Prepare other input files
+-----------------------------------
+
+Get the number of atoms in the system from "structure_prep.log" file and edit 
+"create_input_files_ANMPathway.pl" file. Change other parameters such as cut-offs, force constans,
+target RMSD of the pathway etc. as necessary. Run the script "create_input_files_ANMPathway.pl"
+  
+  $ ./create_input_files_ANMPathway.pl
+   
+This step will produce the following output files
+  - INPUT_FIND_STRUCTURE_ON_CUSP
+  - INPUT_MINIMIZE_ON_CUSP
+  - INPUT_SLIDE_ONE_SURFACE_1
+  - INPUT_SLIDE_ONE_SURFACE_2
+  - INPUT_COLLECT_ENERGY
+
+These are the input files for the following steps. 
+
+
+Step 1
+------
+First step: issue the following command
+
+  $ ./1_locate_struct_on_cusp_v2
+  
+The following input files need to be in the same directory
+  - INPUT_STRUCTURE_1
+  - INPUT_STRUCTURE_2
+  - INPUT_FIND_STRUCTURES_ON_CUSP 
+
+This step will produce the following output file
+  - initial_struct_on_cusp
+
+Step 2
+------
+Second step: issue the following command
+
+  $ ./2_find_min_on_cusp_v4
+  
+The following input files need to be in the same directory
+  - INPUT_STRUCTURE_1
+  - INPUT_STRUCTURE_2
+  - initial_struct_on_cusp
+  - INPUT_MINIMIZE_ON_CUSP
+  - REFERENCE_FOR_ALIGNMENT
+  
+This step will produce the following output file
+  - minimized_struct_on_cusp
+  
+Step 3
+------
+Third step: This step involves the sliding down part and composed of two separate calculations i.e.
+            sliding down two wells. Issue the following commands 
+
+  $ cp INPUT_SLIDE_ONE_SURFACE_1 INPUT_SLIDE_ONE_SURFACE
+  $ ./3_desc_one_surface_v3
+
+Wait for the calcualtion to finish, then issue the following commands
+
+  $ cp INPUT_SLIDE_ONE_SURFACE_2 INPUT_SLIDE_ONE_SURFACE
+  $ ./3_desc_one_surface_v3
+
+The following input files need to be in the same directory for each calculation.
+  - INPUT_STRUCTURE_1
+  - INPUT_STRUCTURE_2
+  - minimized_struct_on_cusp
+  - REFERENCE_FOR_ALIGNMENT
+  - INPUT_SLIDE_ONE_SURFACE
+
+Ouput of these two calcualtions
+  - OUT_COORDS_SURFACE_1_*
+  - num_structures_written_1
+  - OUT_COORDS_SURFACE_2_*
+  - num_structures_written_2
+
+
+  
+Step 4
+------
+Fourth step: issue the following command
+
+  $ ./4_collec_ener_v2
+  
+The following files need to be present the same directory
+  - INPUT_COLLECT_ENERGY
+  - INPUT_STRUCTURE_1
+  - INPUT_STRUCTURE_2
+  - minimized_struct_on_cusp
+  - REFERENCE_FOR_ALIGNMENT
+  - All files with names OUT_COORDS_SURFACE_1_*, num_structures_written_1
+  - All files with names OUT_COORDS_SURFACE_2_*, num_structures_written_2
+  
+Output
+-  Files with names COORDS_IMAGE_1, COORDS_IMAGE_2, ... etc
+
+Step 5
+------
+Issue the command by replacing NUMBER_OF_PARTICLES and NUMBER_OF_IMAGES with proper values.
+
+  $ ./5_makepathway_v2 -n NUMBER_OF_PARTICLES -i NUMBER_OF_IMAGES -a 0
+  
+All the files with names COORDS_IMAGE_* gotten from the previous step should be present as
+well as the "PDB_INFO" file gotten in step 0.
+"NUMBER_OF_IMAGES" can be found in the output file "number_of_structures_in_pathway" 
+obtained in the previous step.
+
+Output: A PDB file called "pathway.pdb" with multiple models.
+   
+
