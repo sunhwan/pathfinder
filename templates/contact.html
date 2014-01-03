@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if mail_sent %}
+<div class="row-fluid marketing text-center">
+<div class='hero-unit'>
+  <h3>Your message is sent to the administrators.</h3>
+
+  <p>
+    Thank you for sending us your comment. We will get back to you shortly.<br/>
+  </p>
+</div>
+</div>
+
+{% else %}
+<div class="row-fluid marketing">
+<h4>Questions or Comment?</h4>
+<p class="text-left">
+
+<form class="form-horizontal" enctype="multipart/form-data" method="POST" id='form' action="{{ action|default(url_for('contact')) }}">
+
+<div class="control-group">
+  <label class="control-label">Email address</label>
+  <div class="controls">
+    <input type="email" name='email' required>
+    <span class='help-inline'>required</span>
+  </div>
+</div>
+
+<div class="control-group">
+  <label class="control-label">Message</label>
+  <div class="controls">
+    <textarea name='text' rows=10 class='span12'></textarea>
+  </div>
+</div>
+
+<div class="control-group">
+  <div class="controls">
+    <button class="btn" type="submit">Send</button>
+  </div>
+</div>
+</form>
+{% endif %}
+{% endblock %}

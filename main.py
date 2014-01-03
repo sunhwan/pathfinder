@@ -103,6 +103,22 @@ def tutorial():
 def about():
     return render_template('about.html')
 
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    mail_sent = False
+    if request.method == 'POST':
+        email = request.form['email']
+        text = request.form['text'].strip()
+        if email and text:
+            from flask_mail import Mail, Message
+            mail = Mail(app)
+            msg = Message('[ANMPathway] comment from a user', sender=email, recipients=[conf.ADMIN_EMAIL, conf.EXTRA_EMAIL])
+            msg.body = text
+            mail.send(msg)
+            mail_sent = True
+    
+    return render_template('contact.html', mail_sent=mail_sent)
+
 @app.route('/download/<uuid>/<filename>')
 @app.route('/download/<uuid>', defaults={'filename': None})
 def download(uuid, filename):
