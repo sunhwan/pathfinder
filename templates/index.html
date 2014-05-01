@@ -112,12 +112,22 @@ function myalert(msg) {
 <form class="form-horizontal" enctype="multipart/form-data" method="POST" id='form' action="{{ action|default(url_for('upload')) }}">
 
 {% if step != 1 %}
-<div class="alert alert-info">Please upload two PDB files that represent initial and final state structures.
+<div class="alert alert-info">
+Please upload two PDB files that represent initial and final state structures.
 <ul>
-  <li>ANMPathway performs calculations for two chains containing the same number and order of residues. Please verify that your input files contain the same number of residues, and if not, edit manually one or both input files.</li>
-  <li>ANMPathway processes multiple chains assuming that they are listed in the same order in the two uploaded files.</li>
-  <li>Some PDB files contains multiple copies of monomers in the asymmetric unit. If users are interested in a transition undergone by a given chain (and the PDB file contains multiple chains), they should edit the input PDB file (or use chain selection tool provided in the next step) to remove the coordinates of all chains other than the selected chain.</li>
+  <li>ANMPathway assumes the number and the order of residues in two end-state structures are the same.</li>
+  <li>ANMPathway can process multiple chains, but they have to be listed in the same order.</li>
+  <li>Some PDB files contains multiple copies of monomers in the asymmetric unit. If you are interested in a transition undergone by a given chain, please either edit the input PDB file before uploading or select (chain selection option will be provided in the next step) only the chain that you are interested.</li>
 </ul>
+
+Once you upload PDB, there will be more options for the calculation. When the calculation is done, a set of output files will be delivered to the e-mail address you provided. These output files are:
+<ul>
+<li><i>pathway.pdb</i>: snapshots of transition pathway between the end states.</li>
+<li><i>movie.gif</i>: an example movie generated based on pathway.pdb</li>
+<li><i>close_contacts_5.0_10.0</i>: a list of residue paris that have contact during the transition.</li>
+</ul>
+
+For more information, please see <a href="http://anmpathway.lcrc.anl.gov/anmpathway.cgi/tutorial">Tutorial</a> page.
 </div>
 {% endif %}
 
