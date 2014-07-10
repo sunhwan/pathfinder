@@ -310,10 +310,16 @@ def upload():
     filename = secure_filename(pdb1.filename)
     pdb1.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     pdb1_chains = _count_chain_resid(filename)
+    if ' ' in pdb1_chains.keys(): 
+        error={'code': 505, 'message': 'PDB files must have chain ID. Please check your PDB files.'}
+        return render_template('index.html', error=error)
 
     filename = secure_filename(pdb2.filename)
     pdb2.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     pdb2_chains = _count_chain_resid(filename)
+    if ' ' in pdb2_chains.keys(): 
+        error={'code': 505, 'message': 'PDB files must have chain ID. Please check your PDB files.'}
+        return render_template('index.html', error=error)
 
     #if pdb1_chains != pdb2_chains:
     #    error={'code': 503, 'message': 'The chain lengths of two PDB are different'}
