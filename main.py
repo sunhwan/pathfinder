@@ -343,7 +343,6 @@ def upload():
     chains2 = []
     for k in sorted(pdb2_chains.keys()):
         chains2.append((k, pdb2_chains[k]))
-    print chains2
 
     return render_template('index.html', error=error, chains1=chains1, chains2=chains2, pdb1=pdb1, pdb2=pdb2, step=1, action=url_for('pathfinder'))
 
