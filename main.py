@@ -321,9 +321,9 @@ def upload():
         error={'code': 505, 'message': 'PDB files must have chain ID. Please check your PDB files.'}
         return render_template('index.html', error=error)
 
-    #if pdb1_chains != pdb2_chains:
-    #    error={'code': 503, 'message': 'The chain lengths of two PDB are different'}
-    #    return render_template('index.html', error=error)
+    if pdb1_chains != pdb2_chains:
+        error={'code': 503, 'message': 'The chain lengths of two PDB are different'}
+        return render_template('index.html', error=error)
 
     if filecmp.cmp(os.path.join(app.config['UPLOAD_FOLDER'], pdb1.filename), \
                    os.path.join(app.config['UPLOAD_FOLDER'], pdb2.filename)):
