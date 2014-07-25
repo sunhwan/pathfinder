@@ -170,7 +170,8 @@ def pathfinder():
                591: 'Please select at least one chain',
                592: 'Please provide e-mail address', 
                593: 'Please provide proper residue range',
-               594: 'Some parameters are missing for initial and final PDB'}
+               594: 'Some parameters are missing for initial and final PDB',
+               595: 'The initial and fianl PDBs should have same number of C-alpha atoms.'}
 
     if not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], request.form.get('pdb1', ''))): flag = 590
     if not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], request.form.get('pdb2', ''))): flag = 590
@@ -190,6 +191,8 @@ def pathfinder():
 
     for pname in ['fc1', 'fc2', 'cutoff1', 'cutoff2', 'offset1', 'offset2']:
         if not request.form.get(pname, None): flag = 594
+
+    flag = True
 
     if flag:
         #error = {'code': 599, 'message': 'Something went terribly wrong'}
@@ -282,9 +285,12 @@ def _count_chain_resid(pdbfile):
             name = line[12:17].strip()
             if name != 'CA': continue
             if not chains.has_key(chainid):
-                chains[chainid] = [resid,resid]
+                chains[chainid] = [[resid,resid]]
             else:
-                chains[chainid][1] = resid
+                if chains[chainid][-1][1] == resid - 1:
+                    chains[chainid][-1][1] = resid
+                else:
+                    chains[chainid].append([resid, resid])
     return chains
 
 @app.route('/upload', methods=['GET', 'POST'])
@@ -321,9 +327,9 @@ def upload():
         error={'code': 505, 'message': 'PDB files must have chain ID. Please check your PDB files.'}
         return render_template('index.html', error=error)
 
-    if pdb1_chains != pdb2_chains:
-        error={'code': 503, 'message': 'The chain lengths of two PDB are different'}
-        return render_template('index.html', error=error)
+    #if pdb1_chains != pdb2_chains:
+    #    error={'code': 503, 'message': 'The chain lengths of two PDB are different'}
+    #    return render_template('index.html', error=error)
 
     if filecmp.cmp(os.path.join(app.config['UPLOAD_FOLDER'], pdb1.filename), \
                    os.path.join(app.config['UPLOAD_FOLDER'], pdb2.filename)):
@@ -337,6 +343,7 @@ def upload():
     chains2 = []
     for k in sorted(pdb2_chains.keys()):
         chains2.append((k, pdb2_chains[k]))
+    print chains2
 
     return render_template('index.html', error=error, chains1=chains1, chains2=chains2, pdb1=pdb1, pdb2=pdb2, step=1, action=url_for('pathfinder'))
 

@@ -153,12 +153,15 @@ For more information, please see <a href="http://anmpathway.lcrc.anl.gov/anmpath
   <div class="controls">
 
 <table class='table-condensed'>
-{% for k,v in chains1 %}
+{% for k,chains in chains1 %}
+{% for v in chains %}
   <tr>
     <td>
+    {% if loop.index == 1 %}
       <label class="checkbox inline" style="padding-top: 0px;">
         <input type="checkbox" name="chains1" value="{{ k }}" checked> {{ k }}
       </label>
+    {% endif %}
     </td>
     <td>
       <span style='width: 15px; display: inline-block;'></span>
@@ -168,8 +171,12 @@ For more information, please see <a href="http://anmpathway.lcrc.anl.gov/anmpath
     </td>
     <td>
       <i class="iconic-o-plus"></i>
+    {% if loop.index > 1 %}
+      <i class="iconic-o-minus"></i>
+    {% endif %}
     </td>
   </tr>
+{% endfor %}
 {% endfor %}
 </table>
   </div>
@@ -198,7 +205,8 @@ For more information, please see <a href="http://anmpathway.lcrc.anl.gov/anmpath
   <div class="controls">
 
 <table class='table-condensed'>
-{% for k,v in chains2 %}
+{% for k,chains in chains2 %}
+{% for v in chains %}
   <tr>
     <td>
       <label class="checkbox inline" style="padding-top: 0px;">
@@ -215,6 +223,7 @@ For more information, please see <a href="http://anmpathway.lcrc.anl.gov/anmpath
       <i class="iconic-o-plus"></i>
     </td>
   </tr>
+{% endfor %}
 {% endfor %}
 </table>
   </div>
