@@ -192,8 +192,6 @@ def pathfinder():
     for pname in ['fc1', 'fc2', 'cutoff1', 'cutoff2', 'offset1', 'offset2']:
         if not request.form.get(pname, None): flag = 594
 
-    flag = True
-
     if flag:
         #error = {'code': 599, 'message': 'Something went terribly wrong'}
         error = {'code': flag, 'message': message[flag]}
